@@ -1,0 +1,23 @@
+{
+  "name": "@ultraner/mcp",
+  "version": "0.1.0",
+  "description": "Ultraner MCP server, let AI agents create payments, refunds, checkout sessions and inspect transactions across Africa.",
+  "license": "MIT",
+  "homepage": "https://ultraner.com/ai",
+  "repository": { "type": "git", "url": "https://github.com/Ultraner/ultraner-mcp.git" },
+  "type": "module",
+  "bin": { "ultraner-mcp": "dist/index.js" },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["ultraner", "mcp", "model context protocol", "payments", "africa", "mobile money", "ai agents"],
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": { "typescript": "^5.5.0" }
+}
