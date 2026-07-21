@@ -1,6 +1,6 @@
 {
   "name": "@ultraner/mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ultraner MCP server, let AI agents create payments, refunds, checkout sessions and inspect transactions across Africa.",
   "license": "MIT",
   "homepage": "https://ultraner.com/ai",

@@ -4,7 +4,7 @@
  * Lets AI agents call the Ultraner API directly over the Model Context Protocol:
  * create payments and refunds, open checkout sessions, inspect transactions.
  *
- * Run:  ULTRANER_API_KEY=sk_live_... npx @ultraner/mcp
+ * Run:  ULTRANER_API_KEY=uk_live_... npx @ultraner/mcp
  * Docs: https://ultraner.com/ai
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -21,7 +21,9 @@ async function api(method: string, path: string, body?: unknown) {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       method,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
+      // Ultraner API keys authenticate via X-API-Key (Authorization: Bearer is
+      // reserved for user JWTs and would be rejected for a uk_ key).
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const text = await res.text();
@@ -35,7 +37,7 @@ async function api(method: string, path: string, body?: unknown) {
 
 const ok = (data: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] });
 
-const server = new McpServer({ name: 'ultraner', version: '0.1.0' });
+const server = new McpServer({ name: 'ultraner', version: '0.2.0' });
 
 server.tool(
   'create_mobile_money_payment',
@@ -111,6 +113,22 @@ server.tool(
   'Create a Stripe checkout session for card payments.',
   { amount: z.number(), currency: z.string(), successUrl: z.string().optional(), cancelUrl: z.string().optional() },
   async (args) => ok(await api('POST', '/stripe/sessions', args)),
+);
+
+server.tool(
+  'create_checkout_session',
+  'Mint a one-time, expiring Ultraner checkout token (no dashboard). Returns a token + hosted url + embed_url; the payer picks mobile money, card, or PayPal on the hosted page. The Stripe checkout.sessions.create parity.',
+  {
+    amount: z.number().describe('Amount in the smallest currency unit'),
+    currency: z.string().optional().describe('e.g. TZS (default), RWF, USD'),
+    title: z.string().optional().describe('Label shown to the payer'),
+    description: z.string().optional(),
+    expires_in_minutes: z.number().optional().describe('Default 1440 (24h), max 43200 (30d)'),
+    is_recurring: z.boolean().optional().describe('Make it a subscription'),
+    recurring_interval: z.enum(['daily', 'weekly', 'monthly', 'custom_days']).optional(),
+    recurring_interval_days: z.number().optional(),
+  },
+  async (args) => ok(await api('POST', '/v0/checkout/sessions', args)),
 );
 
 async function main() {
